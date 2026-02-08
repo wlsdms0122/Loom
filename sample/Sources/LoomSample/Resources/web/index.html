@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+    <title>Loom Modern Sample</title>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text: #1d1d1f;
+            --accent: #0071e3;
+            --secondary: #86868b;
+            --border: rgba(210, 210, 215, 0.5);
+            --success: #34c759;
+            --error: #ff3b30;
+            --glass: blur(20px) saturate(180%);
+
+            /* Spacing system */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --card-bg: rgba(28, 28, 30, 0.85);
+                --text: #f5f5f7;
+                --accent: #0a84ff;
+                --border: rgba(66, 66, 69, 0.65);
+                --success: #32d74b;
+                --error: #ff453a;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { width: 100%; max-width: 900px; }
+
+        header { margin-bottom: var(--space-2xl); text-align: center; }
+        header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-xs); }
+        header p { color: var(--secondary); font-size: 19px; font-weight: 400; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: var(--space-lg);
+            transition: box-shadow 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            letter-spacing: -0.01em;
+        }
+        .card h2::before { content: ''; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
+
+        .input-group { display: flex; flex-direction: column; gap: var(--space-sm); }
+        input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--accent); }
+
+        /* Focus-visible accessibility outlines */
+        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .actions { display: flex; gap: var(--space-xs); margin-top: var(--space-md); }
+        button {
+            flex: 1;
+            padding: var(--space-sm);
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        button:active { transform: scale(0.98); }
+        button.secondary {
+            background: rgba(120, 120, 128, 0.16);
+            color: var(--text);
+        }
+        button.secondary:hover {
+            background: rgba(120, 120, 128, 0.24);
+        }
+        button.destructive {
+            background: var(--error);
+            color: white;
+        }
+
+        .status {
+            margin-top: var(--space-sm);
+            font-size: 13px;
+            font-weight: 500;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            white-space: normal;
+            word-break: break-word;
+            gap: 6px;
+            min-height: 1.5em;
+        }
+        .status.success { color: var(--success); }
+        .status.error { color: var(--error); }
+
+        .console-card { grid-column: 1 / -1; }
+        #console {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: var(--space-md);
+            height: 200px;
+            overflow-y: auto;
+            font-family: "SF Mono", Menlo, monospace;
+            font-size: 12px;
+            color: var(--text);
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+        .log-time { color: var(--secondary); margin-right: var(--space-xs); }
+        .log-type { font-weight: bold; margin-right: var(--space-xs); }
+        .log-type.invoke { color: var(--accent); }
+        .log-type.result { color: var(--success); }
+        .log-type.error { color: var(--error); }
+
+        .test-all-btn {
+            width: 100%;
+            margin-top: var(--space-lg);
+            background: var(--accent);
+            padding: var(--space-md);
+            font-size: 17px;
+            border-radius: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 15px;
+            font-family: "SF Mono", Menlo, monospace;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+            min-height: 60px;
+        }
+        textarea:focus { border-color: var(--accent); }
+
+        select {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2386868b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+        select:focus { border-color: var(--accent); }
+
+        .result-area {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: var(--space-sm);
+            margin-top: var(--space-xs);
+            font-family: "SF Mono", Menlo, monospace;
+            font-size: 12px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text);
+        }
+
+        .event-log {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: var(--space-sm);
+            margin-top: var(--space-xs);
+            font-family: "SF Mono", Menlo, monospace;
+            font-size: 12px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text);
+        }
+
+        /* Custom scrollbar styling for webkit */
+        .result-area::-webkit-scrollbar,
+        .event-log::-webkit-scrollbar,
+        #console::-webkit-scrollbar {
+            width: 6px;
+        }
+        .result-area::-webkit-scrollbar-track,
+        .event-log::-webkit-scrollbar-track,
+        #console::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .result-area::-webkit-scrollbar-thumb,
+        .event-log::-webkit-scrollbar-thumb,
+        #console::-webkit-scrollbar-thumb {
+            background: rgba(120, 120, 128, 0.3);
+            border-radius: 3px;
+        }
+        .result-area::-webkit-scrollbar-thumb:hover,
+        .event-log::-webkit-scrollbar-thumb:hover,
+        #console::-webkit-scrollbar-thumb:hover {
+            background: rgba(120, 120, 128, 0.5);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: 14px;
+            color: var(--text);
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            accent-color: var(--accent);
+        }
+
+        .actions-wrap { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-md); }
+        .actions-wrap button { min-width: 80px; flex: 0 1 auto; }
+
+        .card.full-width { grid-column: 1 / -1; }
+
+        @media (prefers-color-scheme: dark) {
+            .result-area, .event-log {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            textarea, select, input {
+                background: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Loom Sample</h1>
+            <p>Modern Web-to-Native Bridge Testbed</p>
+        </header>
+
+        <div class="grid">
+            <!-- Greeter -->
+            <div class="card">
+                <h2>Greeter</h2>
+                <div class="input-group">
+                    <input type="text" id="nameInput" placeholder="Enter name..." value="Loom Developer">
+                    <div class="actions">
+                        <button onclick="testGreet()">Say Hello</button>
+                    </div>
+                    <div id="greetStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- Clipboard -->
+            <div class="card">
+                <h2>Clipboard</h2>
+                <div class="input-group">
+                    <input type="text" id="clipInput" placeholder="Text to copy..." value="Hello from Loom!">
+                    <div class="actions">
+                        <button onclick="testCopy()">Copy</button>
+                        <button class="secondary" onclick="testPaste()">Paste</button>
+                    </div>
+                    <div id="clipStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- Native Alerts -->
+            <div class="card">
+                <h2>Native Alerts</h2>
+                <div class="input-group">
+                    <select id="alertStyle">
+                        <option value="informational">Informational</option>
+                        <option value="warning">Warning</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                    <div class="actions">
+                        <button onclick="testDialog()">Show Alert</button>
+                    </div>
+                    <div id="alertStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- Open File -->
+            <div class="card">
+                <h2>Open File</h2>
+                <div class="input-group">
+                    <input type="text" id="fileTypeFilter" placeholder="File types (e.g. txt,md,swift)" value="txt,md">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="fileMultiple">
+                        <label for="fileMultiple">Allow multiple files</label>
+                    </div>
+                    <div class="actions">
+                        <button onclick="testOpenFile()">Open File</button>
+                    </div>
+                    <div id="openFileStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- Save File -->
+            <div class="card">
+                <h2>Save File</h2>
+                <div class="input-group">
+                    <input type="text" id="saveDefaultName" placeholder="Default filename..." value="loom-export.txt">
+                    <div class="actions">
+                        <button onclick="testSaveFile()">Save File</button>
+                    </div>
+                    <div id="saveFileStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- File System -->
+            <div class="card">
+                <h2>File System</h2>
+                <div class="input-group">
+                    <input type="text" id="fsPath" placeholder="File path..." value="/tmp/loom-test.txt">
+                    <textarea id="fsContent" rows="2" placeholder="File content...">Hello from Loom FileSystem!</textarea>
+                    <div class="actions-wrap">
+                        <button onclick="testFsExists()">Exists</button>
+                        <button onclick="testFsReadDir()">Read Dir</button>
+                        <button onclick="testFsWrite()">Write</button>
+                        <button onclick="testFsRead()">Read</button>
+                        <button class="destructive" onclick="testFsRemove()">Remove</button>
+                    </div>
+                    <div id="fsStatus" class="status" role="status" aria-live="polite"></div>
+                    <div id="fsResult" class="result-area" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Shell -->
+            <div class="card">
+                <h2>Shell</h2>
+                <div class="input-group">
+                    <input type="text" id="shellUrl" placeholder="URL to open..." value="https://github.com">
+                    <input type="text" id="shellPath" placeholder="Path to reveal..." value="/Applications">
+                    <div class="actions">
+                        <button onclick="testOpenURL()">Open URL</button>
+                        <button class="secondary" onclick="testOpenPath()">Open in Finder</button>
+                    </div>
+                    <div id="shellStatus" class="status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <!-- Events -->
+            <div class="card">
+                <h2>Events</h2>
+                <div class="input-group">
+                    <input type="text" id="eventName" placeholder="Event name..." value="test.ping">
+                    <div class="actions-wrap">
+                        <button onclick="testEventSubscribe()">Subscribe</button>
+                        <button class="secondary" onclick="testEventUnsubscribe()">Unsubscribe</button>
+                        <button onclick="testEventTrigger()">Trigger from Swift</button>
+                    </div>
+                    <div id="eventStatus" class="status" role="status" aria-live="polite"></div>
+                    <div id="eventLog" class="event-log" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Process -->
+            <div class="card">
+                <h2>Process</h2>
+                <div class="input-group">
+                    <input type="text" id="procCommand" placeholder="Command path..." value="/bin/echo">
+                    <input type="text" id="procArgs" placeholder="Arguments (comma separated)..." value="hello,world">
+                    <input type="text" id="procTimeout" placeholder="Timeout in seconds (optional)..." value="">
+                    <div class="actions">
+                        <button onclick="testProcess()">Execute</button>
+                    </div>
+                    <div id="procStatus" class="status" role="status" aria-live="polite"></div>
+                    <div id="procResult" class="result-area" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Error Handling -->
+            <div class="card">
+                <h2>Error Handling</h2>
+                <div class="input-group">
+                    <select id="errorScenario">
+                        <option value="readNonexistent">Read non-existent file</option>
+                        <option value="unknownMethod">Call unknown method</option>
+                        <option value="invalidArgs">Invalid arguments</option>
+                    </select>
+                    <div class="actions">
+                        <button onclick="testErrorScenario()">Trigger Error</button>
+                    </div>
+                    <div id="errorStatus" class="status" role="status" aria-live="polite"></div>
+                    <div id="errorResult" class="result-area" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="card console-card">
+                <h2>Live Bridge Logs</h2>
+                <div id="console"></div>
+            </div>
+        </div>
+
+        <button class="test-all-btn" onclick="runTestSuite()">Run Full Test Suite</button>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('console');
+
+        // Event subscription tracking
+        const eventSubscriptions = new Map();
+
+        function log(type, message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const msgStr = typeof message === 'string' ? message : JSON.stringify(message);
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = '[' + time + ']';
+
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'log-type ' + type;
+            typeSpan.textContent = type.toUpperCase();
+
+            const msgSpan = document.createElement('span');
+            msgSpan.textContent = ' ' + msgStr;
+
+            entry.appendChild(timeSpan);
+            entry.appendChild(typeSpan);
+            entry.appendChild(msgSpan);
+            logEl.prepend(entry);
+        }
+
+        // NOTE: safeInvoke is a sample app utility, not part of the Loom framework API.
+        // It wraps loom.invoke() with logging and error handling for demonstration purposes.
+        async function safeInvoke(plugin, method, args) {
+            const selector = `${plugin}.${method}`;
+            log('invoke', { selector, args });
+            try {
+                if (typeof loom === 'undefined') {
+                    throw new Error('Loom bridge not found. Are you running in a Loom-enabled WebView?');
+                }
+                const result = await loom.invoke(selector, args);
+                log('result', result);
+                return result;
+            } catch (err) {
+                log('error', err.message);
+                throw err;
+            }
+        }
+
+        // ---------- Greeter ----------
+
+        async function testGreet() {
+            const status = document.getElementById('greetStatus');
+            const name = document.getElementById('nameInput').value;
+            status.textContent = 'Processing...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('greeter', 'hello', { name });
+                status.textContent = 'OK: ' + res.message;
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Clipboard ----------
+
+        async function testCopy() {
+            const status = document.getElementById('clipStatus');
+            const text = document.getElementById('clipInput').value;
+            status.textContent = 'Copying...';
+            status.className = 'status';
+            try {
+                await safeInvoke('clipboard', 'writeText', { text });
+                status.textContent = 'OK: Copied to clipboard';
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: Copy failed';
+                status.className = 'status error';
+            }
+        }
+
+        async function testPaste() {
+            const status = document.getElementById('clipStatus');
+            status.textContent = 'Pasting...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('clipboard', 'readText', {});
+                status.textContent = 'OK: Clipboard: ' + (res.text || '(empty)');
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: Paste failed';
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Native Alerts ----------
+
+        async function testDialog() {
+            const status = document.getElementById('alertStatus');
+            const style = document.getElementById('alertStyle').value;
+            status.textContent = 'Waiting for user...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('dialog', 'showAlert', {
+                    title: 'Loom Alert Test',
+                    message: 'This is a ' + style + ' alert from the Loom bridge.',
+                    style: style
+                });
+                status.textContent = 'OK: Response: ' + res.response;
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: Dialog error';
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Open File ----------
+
+        async function testOpenFile() {
+            const status = document.getElementById('openFileStatus');
+            const filterStr = document.getElementById('fileTypeFilter').value.trim();
+            const multiple = document.getElementById('fileMultiple').checked;
+            status.textContent = 'Waiting for file selection...';
+            status.className = 'status';
+            try {
+                const args = { title: 'Open File', multiple };
+                if (filterStr) {
+                    args.allowedTypes = filterStr.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                const res = await safeInvoke('dialog', 'openFile', args);
+                const paths = res.paths || [];
+                status.textContent = paths.length > 0
+                    ? 'OK: Selected ' + paths.length + ' file(s): ' + paths.join(', ')
+                    : 'OK: No file selected (cancelled)';
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Save File ----------
+
+        async function testSaveFile() {
+            const status = document.getElementById('saveFileStatus');
+            const defaultName = document.getElementById('saveDefaultName').value.trim();
+            status.textContent = 'Waiting for save location...';
+            status.className = 'status';
+            try {
+                const args = { title: 'Save File' };
+                if (defaultName) args.defaultName = defaultName;
+                const res = await safeInvoke('dialog', 'saveFile', args);
+                status.textContent = res.path
+                    ? 'OK: Save path: ' + res.path
+                    : 'OK: Save cancelled';
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- File System ----------
+
+        function showFsResult(text) {
+            const el = document.getElementById('fsResult');
+            el.style.display = 'block';
+            el.textContent = text;
+        }
+
+        async function testFsExists() {
+            const status = document.getElementById('fsStatus');
+            const path = document.getElementById('fsPath').value;
+            status.textContent = 'Checking...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('filesystem', 'exists', { path });
+                status.textContent = 'OK: exists = ' + res.exists;
+                status.className = 'status success';
+                showFsResult('exists: ' + res.exists);
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showFsResult('Error: ' + e.message);
+            }
+        }
+
+        async function testFsReadDir() {
+            const status = document.getElementById('fsStatus');
+            const path = document.getElementById('fsPath').value;
+            // For readDir we use the directory portion of the path
+            const dirPath = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) || '/' : path;
+            status.textContent = 'Reading directory...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('filesystem', 'readDir', { path: dirPath });
+                const entries = res.entries || [];
+                status.textContent = 'OK: ' + entries.length + ' entries';
+                status.className = 'status success';
+                showFsResult(entries.join('\n'));
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showFsResult('Error: ' + e.message);
+            }
+        }
+
+        async function testFsWrite() {
+            const status = document.getElementById('fsStatus');
+            const path = document.getElementById('fsPath').value;
+            const content = document.getElementById('fsContent').value;
+            status.textContent = 'Writing...';
+            status.className = 'status';
+            try {
+                await safeInvoke('filesystem', 'writeFile', { path, content });
+                status.textContent = 'OK: File written to ' + path;
+                status.className = 'status success';
+                showFsResult('Written ' + content.length + ' characters to ' + path);
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showFsResult('Error: ' + e.message);
+            }
+        }
+
+        async function testFsRead() {
+            const status = document.getElementById('fsStatus');
+            const path = document.getElementById('fsPath').value;
+            status.textContent = 'Reading...';
+            status.className = 'status';
+            try {
+                const res = await safeInvoke('filesystem', 'readFile', { path });
+                // readFile returns base64-encoded content
+                const decoded = atob(res.content);
+                status.textContent = 'OK: Read ' + decoded.length + ' characters';
+                status.className = 'status success';
+                showFsResult(decoded);
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showFsResult('Error: ' + e.message);
+            }
+        }
+
+        async function testFsRemove() {
+            const status = document.getElementById('fsStatus');
+            const path = document.getElementById('fsPath').value;
+            status.textContent = 'Removing...';
+            status.className = 'status';
+            try {
+                await safeInvoke('filesystem', 'remove', { path });
+                status.textContent = 'OK: Removed ' + path;
+                status.className = 'status success';
+                showFsResult('Removed: ' + path);
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showFsResult('Error: ' + e.message);
+            }
+        }
+
+        // ---------- Shell ----------
+
+        async function testOpenURL() {
+            const status = document.getElementById('shellStatus');
+            const url = document.getElementById('shellUrl').value;
+            status.textContent = 'Opening URL...';
+            status.className = 'status';
+            try {
+                await safeInvoke('shell', 'openURL', { url });
+                status.textContent = 'OK: Opened ' + url;
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        async function testOpenPath() {
+            const status = document.getElementById('shellStatus');
+            const path = document.getElementById('shellPath').value;
+            status.textContent = 'Opening in Finder...';
+            status.className = 'status';
+            try {
+                await safeInvoke('shell', 'openPath', { path });
+                status.textContent = 'OK: Opened ' + path;
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Events ----------
+
+        function appendEventLog(text) {
+            const el = document.getElementById('eventLog');
+            el.style.display = 'block';
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            el.textContent = '[' + time + '] ' + text + '\n' + el.textContent;
+        }
+
+        function testEventSubscribe() {
+            const status = document.getElementById('eventStatus');
+            const eventName = document.getElementById('eventName').value;
+            if (eventSubscriptions.has(eventName)) {
+                status.textContent = 'Already subscribed to ' + eventName;
+                status.className = 'status';
+                return;
+            }
+            if (typeof loom === 'undefined') {
+                status.textContent = 'FAIL: Loom bridge not found';
+                status.className = 'status error';
+                return;
+            }
+            const unsubscribe = loom.on(eventName, (data) => {
+                appendEventLog('Event "' + eventName + '": ' + JSON.stringify(data));
+            });
+            eventSubscriptions.set(eventName, unsubscribe);
+            status.textContent = 'OK: Subscribed to "' + eventName + '"';
+            status.className = 'status success';
+            appendEventLog('Subscribed to "' + eventName + '"');
+            log('result', 'Subscribed to event: ' + eventName);
+        }
+
+        function testEventUnsubscribe() {
+            const status = document.getElementById('eventStatus');
+            const eventName = document.getElementById('eventName').value;
+            const unsub = eventSubscriptions.get(eventName);
+            if (!unsub) {
+                status.textContent = 'Not subscribed to ' + eventName;
+                status.className = 'status';
+                return;
+            }
+            unsub();
+            eventSubscriptions.delete(eventName);
+            status.textContent = 'OK: Unsubscribed from "' + eventName + '"';
+            status.className = 'status success';
+            appendEventLog('Unsubscribed from "' + eventName + '"');
+            log('result', 'Unsubscribed from event: ' + eventName);
+        }
+
+        async function testEventTrigger() {
+            const status = document.getElementById('eventStatus');
+            const eventName = document.getElementById('eventName').value;
+            status.textContent = 'Triggering event from Swift...';
+            status.className = 'status';
+            try {
+                await safeInvoke('eventDemo', 'emit', { event: eventName, data: '{"source":"web","time":' + Date.now() + '}' });
+                status.textContent = 'OK: Triggered "' + eventName + '" from Swift';
+                status.className = 'status success';
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+            }
+        }
+
+        // ---------- Process ----------
+
+        function showProcResult(text) {
+            const el = document.getElementById('procResult');
+            el.style.display = 'block';
+            el.textContent = text;
+        }
+
+        async function testProcess() {
+            const status = document.getElementById('procStatus');
+            const command = document.getElementById('procCommand').value;
+            const argsStr = document.getElementById('procArgs').value.trim();
+            const timeoutStr = document.getElementById('procTimeout').value.trim();
+            status.textContent = 'Executing...';
+            status.className = 'status';
+            try {
+                const args = { command };
+                if (argsStr) {
+                    args.arguments = argsStr.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                if (timeoutStr) {
+                    args.timeout = parseFloat(timeoutStr);
+                }
+                const res = await safeInvoke('process', 'execute', args);
+                status.textContent = 'OK: exit code ' + res.exitCode;
+                status.className = 'status success';
+                let output = 'Exit code: ' + res.exitCode;
+                if (res.stdout) output += '\n\nstdout:\n' + res.stdout;
+                if (res.stderr) output += '\n\nstderr:\n' + res.stderr;
+                showProcResult(output);
+            } catch (e) {
+                status.textContent = 'FAIL: ' + e.message;
+                status.className = 'status error';
+                showProcResult('Error: ' + e.message);
+            }
+        }
+
+        // ---------- Error Handling ----------
+
+        function showErrorResult(text) {
+            const el = document.getElementById('errorResult');
+            el.style.display = 'block';
+            el.textContent = text;
+        }
+
+        async function testErrorScenario() {
+            const status = document.getElementById('errorStatus');
+            const scenario = document.getElementById('errorScenario').value;
+            status.textContent = 'Running error scenario...';
+            status.className = 'status';
+
+            try {
+                switch (scenario) {
+                    case 'readNonexistent':
+                        await safeInvoke('filesystem', 'readFile', { path: '/nonexistent/abc.txt' });
+                        break;
+                    case 'unknownMethod':
+                        await safeInvoke('nonexistent', 'method', {});
+                        break;
+                    case 'invalidArgs':
+                        await safeInvoke('shell', 'openURL', { url: '' });
+                        break;
+                }
+                // If we get here, no error was thrown
+                status.textContent = 'Unexpected: No error thrown';
+                status.className = 'status';
+                showErrorResult('No error was thrown (unexpected)');
+            } catch (e) {
+                status.textContent = 'OK: Error caught as expected';
+                status.className = 'status success';
+                showErrorResult('Error: ' + e.message);
+            }
+        }
+
+        // ---------- Full Test Suite ----------
+
+        async function runTestSuite() {
+            log('system', '=== Starting Full Test Suite ===');
+            let passed = 0;
+            let failed = 0;
+
+            async function runTest(name, fn) {
+                try {
+                    await fn();
+                    passed++;
+                    log('result', 'PASS: ' + name);
+                } catch (e) {
+                    failed++;
+                    log('error', 'FAIL: ' + name + ' - ' + e.message);
+                }
+            }
+
+            // 1. Greeter
+            await runTest('greeter.hello', async () => {
+                const res = await safeInvoke('greeter', 'hello', { name: 'Test Suite' });
+                if (!res.message) throw new Error('No message returned');
+            });
+
+            await new Promise(r => setTimeout(r, 300));
+
+            // 2. Clipboard write/read roundtrip
+            const clipTestValue = 'Loom test ' + Date.now();
+            await runTest('clipboard.writeText', async () => {
+                await safeInvoke('clipboard', 'writeText', { text: clipTestValue });
+            });
+
+            await runTest('clipboard.readText', async () => {
+                const res = await safeInvoke('clipboard', 'readText', {});
+                if (res.text !== clipTestValue) throw new Error('Expected "' + clipTestValue + '" but got "' + res.text + '"');
+            });
+
+            await new Promise(r => setTimeout(r, 300));
+
+            // 3. File System lifecycle: write -> exists(true) -> read -> readDir -> remove -> exists(false)
+            const testPath = '/tmp/loom-test-suite-' + Date.now() + '.txt';
+            const testContent = 'Test suite content: ' + new Date().toISOString();
+
+            await runTest('fs.writeFile', async () => {
+                await safeInvoke('filesystem', 'writeFile', { path: testPath, content: testContent });
+            });
+
+            await runTest('fs.exists (should be true)', async () => {
+                const res = await safeInvoke('filesystem', 'exists', { path: testPath });
+                if (!res.exists) throw new Error('File should exist after writing');
+            });
+
+            await runTest('fs.readFile', async () => {
+                const res = await safeInvoke('filesystem', 'readFile', { path: testPath });
+                const decoded = atob(res.content);
+                if (decoded !== testContent) throw new Error('Content mismatch: expected "' + testContent + '" but got "' + decoded + '"');
+            });
+
+            await runTest('fs.readDir', async () => {
+                const res = await safeInvoke('filesystem', 'readDir', { path: '/tmp' });
+                if (!res.entries || !Array.isArray(res.entries)) throw new Error('Expected entries array');
+            });
+
+            await runTest('fs.remove', async () => {
+                await safeInvoke('filesystem', 'remove', { path: testPath });
+            });
+
+            await runTest('fs.exists (should be false)', async () => {
+                const res = await safeInvoke('filesystem', 'exists', { path: testPath });
+                if (res.exists) throw new Error('File should not exist after removal');
+            });
+
+            await new Promise(r => setTimeout(r, 300));
+
+            // 4. Process execute
+            await runTest('process.execute', async () => {
+                const res = await safeInvoke('process', 'execute', { command: '/bin/echo', arguments: ['test'] });
+                if (res.exitCode !== 0) throw new Error('Expected exit code 0 but got ' + res.exitCode);
+                if (!res.stdout.includes('test')) throw new Error('Expected stdout to contain "test"');
+            });
+
+            await new Promise(r => setTimeout(r, 300));
+
+            // 5. Error scenarios
+            await runTest('error: read nonexistent file', async () => {
+                try {
+                    await safeInvoke('filesystem', 'readFile', { path: '/nonexistent/abc.txt' });
+                    throw new Error('Should have thrown');
+                } catch (e) {
+                    if (e.message === 'Should have thrown') throw e;
+                    // Error was thrown as expected - pass
+                }
+            });
+
+            await runTest('error: unknown method', async () => {
+                try {
+                    await safeInvoke('nonexistent', 'method', {});
+                    throw new Error('Should have thrown');
+                } catch (e) {
+                    if (e.message === 'Should have thrown') throw e;
+                    // Error was thrown as expected - pass
+                }
+            });
+
+            // Summary
+            const total = passed + failed;
+            const summary = '=== Test Suite Complete: ' + passed + '/' + total + ' passed, ' + failed + ' failed ===';
+            log('system', summary);
+
+            // Update test button text temporarily
+            const btn = document.querySelector('.test-all-btn');
+            const originalText = btn.textContent;
+            btn.textContent = passed + '/' + total + ' tests passed' + (failed > 0 ? ' (' + failed + ' failed)' : '');
+            btn.style.background = failed === 0 ? 'var(--success)' : 'var(--error)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
